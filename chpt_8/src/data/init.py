@@ -3,15 +3,18 @@ from pathlib import Path
 from contextlib import contextmanager
 from sqlite3 import Connection, connect, IntegrityError
 
-db_dir = Path(__file__).resolve().parents[1] / "db"
-db_dir.mkdir(exist_ok=True)
-db_path = str(db_dir / "cryptid.db")
-db_name = os.getenv("CRYPTID_SQLITE_DB", db_path)
+
+def get_db_path() -> str:
+    db_dir = Path(__file__).resolve().parents[1] / "db"
+    db_dir.mkdir(exist_ok=True)
+    db_path = str(db_dir / "cryptid.db")
+    db_name = os.getenv("CRYPTID_SQLITE_DB", db_path)
+    return db_name
 
 
 def get_conn():
     """Setup Database Connection"""
-    conn = connect(db_name, check_same_thread=False)
+    conn = connect(get_db_path(), check_same_thread=False)
     try:
         yield conn
         conn.commit()

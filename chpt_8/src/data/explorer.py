@@ -67,13 +67,13 @@ def create(conn: Connection, explorer: Explorer) -> Explorer:
     return get_one(conn, explorer.name)
 
 
-def delete(conn: Connection, name: str) -> bool:
+def delete(conn: Connection, name: str):
     """Delete an explorer"""
     curs = conn.cursor()
     qry = "delete from explorer where name=:name"
     params = {"name": name}
     curs.execute(qry, params)
     if curs.rowcount == 1:
-        return True
+        return
     else:
         raise Missing(f"Explorer {name} not found")

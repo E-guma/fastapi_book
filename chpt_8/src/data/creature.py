@@ -71,14 +71,14 @@ def modify(conn: Connection, name: str, creature: Creature) -> Creature:
         raise Missing(f"Creature {name} not found")
 
 
-def delete(conn: Connection, name: str) -> bool:
+def delete(conn: Connection, name: str):
     """Delete a creature"""
     curs = conn.cursor()
     qry = "delete from creature where name=:name"
     params = {"name": name}
     curs.execute(qry, params)
     if curs.rowcount == 1:
-        return True
+        return
     else:
         raise Missing(f"Creature {name} not found")
 
