@@ -81,7 +81,3 @@ def delete(conn: Connection, name: str):
         return
     else:
         raise Missing(f"Creature {name} not found")
-
-
-if __name__ == "__main__":
-    pass

@@ -1,7 +1,7 @@
 [project]
 name = "fastapi_book"
 version = "0.1.0"
-description = "Add your description here"
+description = "Cryptid API from the FastAPI book"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
@@ -12,4 +12,9 @@ dependencies = [
 [dependency-groups]
 dev = [
     "pytest>=9.1.1",
+    "ruff>=0.17.4",
 ]
+
+[tool.pytest.ini_options]
+testpaths = ["chpt_8/src/tests"]
+pythonpath = ["chpt_8/src"]

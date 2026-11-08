@@ -22,5 +22,5 @@ def modify(conn: data.Connection, name: str, explorer: Explorer) -> Explorer:
     return data.modify(conn, name, explorer)
 
 
-def delete(conn: data.Connection, name: str) -> bool:
+def delete(conn: data.Connection, name: str) -> None:
     return data.delete(conn, name)

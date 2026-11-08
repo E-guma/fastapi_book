@@ -22,5 +22,5 @@ def modify(conn: data.Connection, name: str, creature: Creature) -> Creature:
     return data.modify(conn, name, creature)
 
 
-def delete(conn: data.Connection, name: str) -> bool:
+def delete(conn: data.Connection, name: str) -> None:
     return data.delete(conn, name)
