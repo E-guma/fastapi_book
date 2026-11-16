@@ -50,3 +50,13 @@ def init_db():
                 aka text
             )
         """)
+
+        # Create User Table
+        conn.execute(
+            """create table if not exists user(name text primary key, hash text)"""
+        )
+
+        # Create xuser Table
+        conn.execute(
+            """create table if not exists xuser(name text primary key, hash text)"""
+        )

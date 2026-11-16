@@ -18,7 +18,7 @@ def sample() -> Explorer:
 
 @pytest.fixture
 def seeded_explorer(sample) -> Explorer:
-    """Seed an explorer into the database for dependent tests."""
+    """Seed an explorer into the dat0abase for dependent tests."""
     with get_conn_cm() as conn:
         explorer.create(conn, sample)
     return sample
