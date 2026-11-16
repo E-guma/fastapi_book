@@ -19,12 +19,12 @@ _creatures = [
 
 
 def get_all() -> list[Creature]:
-    """Return all creatures"""
+    """Return all creatures."""
     return _creatures
 
 
 def get_one(name: str) -> Creature | None:
-    """Return named Creature"""
+    """Return the creature with the given name, if present."""
     for creature in _creatures:
         if creature.name == name:
             return creature
@@ -32,20 +32,20 @@ def get_one(name: str) -> Creature | None:
 
 
 def create(creature: Creature) -> Creature:
-    """Add a Creature"""
+    """Return the supplied creature without persisting it."""
     return creature
 
 
 def modify(id, creature: Creature) -> Creature:
-    """Partially modify a Creature"""
+    """Return the supplied creature without applying changes."""
     return creature
 
 
 def replace(id, creature: Creature) -> Creature:
-    """Replace a creature"""
+    """Return the supplied creature without replacing stored state."""
     return creature
 
 
 def delete(id, name: str) -> bool:
-    """Delete a creature; return None if it existed"""
+    """Return None; deletions are no-ops in the fake store."""
     return None

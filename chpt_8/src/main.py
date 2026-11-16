@@ -1,12 +1,12 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
-from web import creature, explorer
+from web import creature, explorer, auth, user
 from data.init import init_db
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Initialise database tables"""
+    """Initialize database tables."""
     init_db()
     yield
 
@@ -21,10 +21,11 @@ app = FastAPI(
 
 @app.get("/health", tags=["health"], summary="Health check")
 def health() -> dict[str, str]:
-    """Return a simple liveness response."""
+    """Return service health status."""
     return {"status": "ok"}
 
-
+app.include_router(auth.router)
+app.include_router(user.router)
 app.include_router(explorer.router)
 app.include_router(creature.router)
 

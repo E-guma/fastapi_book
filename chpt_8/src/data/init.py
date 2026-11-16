@@ -1,7 +1,17 @@
 import os
-from pathlib import Path
 from contextlib import contextmanager
-from sqlite3 import Connection, connect, IntegrityError
+from pathlib import Path
+from sqlite3 import Connection, IntegrityError, connect
+
+__all__ = [
+    "Connection",
+    "IntegrityError",
+    "get_conn",
+    "get_conn_cm",
+    "get_db_path",
+    "init_db",
+    "migrate_user_table",
+]
 
 
 def get_db_path() -> str:
@@ -13,7 +23,7 @@ def get_db_path() -> str:
 
 
 def get_conn():
-    """Setup Database Connection"""
+    """Yield a database connection and manage its transaction."""
     conn = connect(get_db_path(), check_same_thread=False)
     try:
         yield conn
@@ -28,10 +38,23 @@ def get_conn():
 get_conn_cm = contextmanager(get_conn)
 
 
+def migrate_user_table(conn: Connection) -> None:
+    """Add columns introduced after the original user table was created."""
+    columns = {row[1] for row in conn.execute("pragma table_info(user)")}
+    if "role" not in columns:
+        conn.execute(
+            "alter table user add column role text not null default 'user'"
+        )
+    if "disabled" not in columns:
+        conn.execute(
+            "alter table user add column disabled integer not null default 0"
+        )
+
+
 def init_db():
     """Initialize all database tables."""
     with get_conn_cm() as conn:
-        # Create Explorer table
+        # Explorer
         conn.execute("""
             create table if not exists explorer(
                 name text primary key,
@@ -40,7 +63,7 @@ def init_db():
             )
         """)
 
-        # Create Creature table
+        # Creature
         conn.execute("""
             create table if not exists creature(
                 name text primary key,
@@ -51,12 +74,20 @@ def init_db():
             )
         """)
 
-        # Create User Table
+        # User
         conn.execute(
-            """create table if not exists user(name text primary key, hash text)"""
+            """
+            create table if not exists user(
+                name text primary key,
+                hash text not null,
+                role text not null default 'user',
+                disabled integer not null default 0
+            )
+            """
         )
+        migrate_user_table(conn)
 
-        # Create xuser Table
+        # xuser
         conn.execute(
             """create table if not exists xuser(name text primary key, hash text)"""
         )

@@ -14,10 +14,6 @@ def create(conn: data.Connection, creature: Creature) -> Creature:
     return data.create(conn, creature)
 
 
-# def replace(id, creature: Creature) -> Creature:
-#   return data.replace(id, creature)
-
-
 def modify(conn: data.Connection, name: str, creature: Creature) -> Creature:
     return data.modify(conn, name, creature)
 

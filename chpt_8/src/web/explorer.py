@@ -1,11 +1,14 @@
 from typing import Annotated
 import service.explorer as service
 from data.error import Duplicate, Missing
-from data.init import get_conn, Connection
 from fastapi import APIRouter, HTTPException, Depends
 from model.explorer import Explorer
 
-Db = Annotated[Connection, Depends(get_conn)]
+from web.auth import Db, get_current_active_user, require_role
+
+logged_in = [Depends(get_current_active_user)]
+admin_only = [Depends(require_role('admin'))]
+
 router = APIRouter(prefix="/explorer", tags=["explorers"])
 
 
@@ -29,12 +32,14 @@ def get_one(name: str, conn: Db) -> Explorer:
         raise HTTPException(status_code=404, detail=e.msg)
 
 
-@router.post("", status_code=201, include_in_schema=False)
+@router.post("", status_code=201, include_in_schema=False,
+             dependencies=logged_in)
 @router.post(
     "/",
     status_code=201,
     summary="Create an explorer",
     responses={409: {"description": "Explorer already exists"}},
+    dependencies=logged_in,
 )
 def create(explorer: Explorer, conn: Db) -> Explorer:
     """Add a new explorer."""
@@ -51,6 +56,7 @@ def create(explorer: Explorer, conn: Db) -> Explorer:
         404: {"description": "Explorer not found"},
         409: {"description": "Explorer name already exists"},
     },
+    dependencies=logged_in,
 )
 def modify(name: str, explorer: Explorer, conn: Db) -> Explorer:
     """Update an existing explorer."""
@@ -67,6 +73,7 @@ def modify(name: str, explorer: Explorer, conn: Db) -> Explorer:
     status_code=204,
     summary="Delete an explorer",
     responses={404: {"description": "Explorer not found"}},
+    dependencies=admin_only,
 )
 def delete(name: str, conn: Db):
     """Delete the explorer with the given name."""

@@ -7,12 +7,12 @@ _explorers = [
 
 
 def get_all() -> list[Explorer]:
-    """Return all explorers"""
+    """Return all explorers."""
     return _explorers
 
 
 def get_one(name: str) -> Explorer | None:
-    """Return named explorer"""
+    """Return the explorer with the given name, if present."""
     for explorer in _explorers:
         if explorer.name == name:
             return explorer
@@ -20,20 +20,20 @@ def get_one(name: str) -> Explorer | None:
 
 
 def create(explorer: Explorer) -> Explorer:
-    """Add an Explorer"""
+    """Return the supplied explorer without persisting it."""
     return explorer
 
 
 def modify(id, explorer: Explorer) -> Explorer:
-    """Partially modify an explorer"""
+    """Return the supplied explorer without applying changes."""
     return explorer
 
 
 def replace(id, explorer: Explorer) -> Explorer:
-    """Replace an explorer"""
+    """Return the supplied explorer without replacing stored state."""
     return explorer
 
 
 def delete(name: str) -> bool:
-    """Delete an explorer; return None if it existed"""
+    """Return None; deletions are no-ops in the fake store."""
     return None

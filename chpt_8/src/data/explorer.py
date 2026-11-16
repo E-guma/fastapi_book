@@ -5,17 +5,17 @@ from .init import IntegrityError, Connection
 
 
 def row_to_model(row: tuple) -> Explorer:
-    """resolves db row tuple to Explorer object"""
+    """Map a database row to an Explorer."""
     return Explorer(name=row[0], country=row[1], description=row[2])
 
 
 def model_to_dict(explorer: Explorer) -> dict:
-    """Resolve Explorer object to dict"""
+    """Convert an Explorer to a dictionary of column values."""
     return explorer.model_dump()
 
 
 def get_one(conn: Connection, name: str) -> Explorer:
-    """Retrieves one explorer"""
+    """Retrieve an explorer by name."""
     curs = conn.cursor()
     qry = "select * from explorer where name=:name"
     params = {"name": name}
@@ -28,7 +28,7 @@ def get_one(conn: Connection, name: str) -> Explorer:
 
 
 def get_all(conn: Connection) -> list[Explorer]:
-    """Retrieves all explorers"""
+    """Retrieve all explorers."""
     curs = conn.cursor()
     qry = "select * from explorer"
     curs.execute(qry)
@@ -36,7 +36,7 @@ def get_all(conn: Connection) -> list[Explorer]:
 
 
 def modify(conn: Connection, name: str, explorer: Explorer) -> Explorer:
-    """Modifies an explorer"""
+    """Update an explorer."""
     curs = conn.cursor()
     qry = """update explorer set 
             name=:name,
@@ -56,7 +56,7 @@ def modify(conn: Connection, name: str, explorer: Explorer) -> Explorer:
 
 
 def create(conn: Connection, explorer: Explorer) -> Explorer:
-    """Create an explorer"""
+    """Create an explorer."""
     curs = conn.cursor()
     qry = "insert into explorer values(:name, :country, :description)"
     params = model_to_dict(explorer)
@@ -68,7 +68,7 @@ def create(conn: Connection, explorer: Explorer) -> Explorer:
 
 
 def delete(conn: Connection, name: str):
-    """Delete an explorer"""
+    """Delete an explorer."""
     curs = conn.cursor()
     qry = "delete from explorer where name=:name"
     params = {"name": name}

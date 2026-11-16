@@ -5,19 +5,19 @@ from .init import IntegrityError, Connection
 
 
 def row_to_model(row: tuple) -> Creature:
-    """Resolves db row tuple to Creature object"""
+    """Map a database row to a Creature."""
     return Creature(
         name=row[0], country=row[1], area=row[2], description=row[3], aka=row[4]
     )
 
 
 def model_to_dict(creature: Creature) -> dict:
-    """Resolve model object to dict"""
+    """Convert a Creature to a dictionary of column values."""
     return creature.model_dump()
 
 
 def get_one(conn: Connection, name: str) -> Creature:
-    """Retrieves one Creature"""
+    """Retrieve a creature by name."""
     curs = conn.cursor()
     qry = "select * from creature where name=:name"
     params = {"name": name}
@@ -30,7 +30,7 @@ def get_one(conn: Connection, name: str) -> Creature:
 
 
 def get_all(conn: Connection) -> list[Creature]:
-    """Retrievs all Creatures"""
+    """Retrieve all creatures."""
     curs = conn.cursor()
     qry = "select * from creature"
     curs.execute(qry)
@@ -38,7 +38,7 @@ def get_all(conn: Connection) -> list[Creature]:
 
 
 def create(conn: Connection, creature: Creature) -> Creature:
-    """Create a creature"""
+    """Create a creature."""
     curs = conn.cursor()
     qry = "insert into creature values(:name, :country, :area, :description, :aka)"
     params = model_to_dict(creature)
@@ -50,7 +50,7 @@ def create(conn: Connection, creature: Creature) -> Creature:
 
 
 def modify(conn: Connection, name: str, creature: Creature) -> Creature:
-    """Modify a creature"""
+    """Update a creature."""
     curs = conn.cursor()
     qry = """Update creature 
             set name=:name, 
@@ -72,7 +72,7 @@ def modify(conn: Connection, name: str, creature: Creature) -> Creature:
 
 
 def delete(conn: Connection, name: str):
-    """Delete a creature"""
+    """Delete a creature."""
     curs = conn.cursor()
     qry = "delete from creature where name=:name"
     params = {"name": name}

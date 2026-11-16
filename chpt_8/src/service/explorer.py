@@ -14,10 +14,6 @@ def create(conn: data.Connection, explorer: Explorer) -> Explorer:
     return data.create(conn, explorer)
 
 
-# def replace(id, explorer: Explorer) -> Explorer:
-#    return data.replace(id, explorer)
-
-
 def modify(conn: data.Connection, name: str, explorer: Explorer) -> Explorer:
     return data.modify(conn, name, explorer)
 

@@ -1,11 +1,14 @@
 from typing import Annotated
 import service.creature as service
 from data.error import Duplicate, Missing
-from data.init import get_conn, Connection
 from fastapi import APIRouter, HTTPException, Depends
 from model.creature import Creature
 
-Db = Annotated[Connection, Depends(get_conn)]
+from web.auth import Db, get_current_active_user, require_role
+
+logged_in = [Depends(get_current_active_user)]
+admin_only = [Depends(require_role('admin'))]
+
 router = APIRouter(prefix="/creature", tags=["creatures"])
 
 
@@ -29,12 +32,14 @@ def get_one(name: str, conn: Db) -> Creature:
         raise HTTPException(status_code=404, detail=e.msg)
 
 
-@router.post("", status_code=201, include_in_schema=False)
+@router.post("", status_code=201, include_in_schema=False,
+             dependencies=logged_in)
 @router.post(
     "/",
     status_code=201,
     summary="Create a creature",
     responses={409: {"description": "Creature already exists"}},
+    dependencies=logged_in,
 )
 def create(creature: Creature, conn: Db) -> Creature:
     """Add a new creature."""
@@ -51,6 +56,7 @@ def create(creature: Creature, conn: Db) -> Creature:
         404: {"description": "Creature not found"},
         409: {"description": "Creature name already exists"},
     },
+    dependencies=logged_in,
 )
 def modify(name: str, creature: Creature, conn: Db) -> Creature:
     """Update an existing creature."""
@@ -67,6 +73,7 @@ def modify(name: str, creature: Creature, conn: Db) -> Creature:
     status_code=204,
     summary="Delete a creature",
     responses={404: {"description": "Creature not found"}},
+    dependencies=admin_only,
 )
 def delete(name: str, conn: Db):
     """Delete the creature with the given name."""

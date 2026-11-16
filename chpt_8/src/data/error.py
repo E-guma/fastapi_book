@@ -1,4 +1,4 @@
-"""Error module"""
+"""Data-layer exceptions."""
 
 
 class Missing(Exception):

@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 print("Libraries imported successfully!")
 
 # %%
-# Create a Sample DataFrame
+# Sample dataset.
 data = {
     "Category": ["A", "B", "C", "D", "E"],
     "Values": [23, 45, 56, 78, 33],
@@ -18,7 +18,7 @@ print(df.describe())
 df
 
 # %%
-# Plotting Data (Matplotlib)
+# Plot values and scores.
 plt.figure(figsize=(8, 4))
 plt.plot(df["Category"], df["Values"], marker="o", color="b", label="Values")
 plt.bar(df["Category"], df["Score"], alpha=0.3, color="r", label="Score (Alpha)")
@@ -30,6 +30,6 @@ plt.grid(True)
 plt.show()
 
 # %%
-# Quick Math Loop
+# Aggregate values.
 total = sum(df["Values"])
 print(f"Total sum of values: {total}")
