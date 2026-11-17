@@ -89,5 +89,12 @@ def init_db():
 
         # xuser
         conn.execute(
-            """create table if not exists xuser(name text primary key, hash text)"""
+            """
+            create table if not exists xuser(
+                name text primary key,
+                hash text not null,
+                role text not null default 'user',
+                disabled integer not null default 0
+            )
+            """
         )

@@ -44,11 +44,11 @@ def get_one(conn: Connection, name: str) -> UserInDB:
         raise Missing(f"User {name} not found")
 
 
-def create(conn: Connection, user: UserInDB) -> UserInDB:
+def create(conn: Connection, user: UserInDB,*, table='user') -> UserInDB:
     """Create a user."""
     curs = conn.cursor()
-    qry = """
-        insert into user(name, hash, role, disabled)
+    qry = f"""
+        insert into {table}(name, hash, role, disabled)
         values(:name, :hash, :role, :disabled)
     """
     params = model_to_dict(user)
@@ -84,11 +84,13 @@ def modify(conn: Connection, name: str, user: UserInDB) -> UserInDB:
 
 def delete(conn: Connection, name: str) -> None:
     """Delete a user."""
+    user = get_one(conn, name)
     curs = conn.cursor()
     qry = "delete from user where name=:name"
     params = {"name": name}
     curs.execute(qry, params)
     if curs.rowcount == 1:
+        create(conn, user, table='xuser')
         return
     else:
         raise Missing(f"User {name} not found")
