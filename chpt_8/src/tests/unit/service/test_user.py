@@ -1,12 +1,12 @@
 from data import user as data
-from data.init import get_conn_cm
+from data.db import get_db_cm
 from model.user import User, UserCreate, UserInDB
 from service import user as service
 from service.auth import verify_password
 
 
 def test_create_hashes_password():
-    with get_conn_cm() as conn:
+    with get_db_cm() as conn:
         created = service.create(
             conn,
             UserCreate(name="alice", password="password123"),
@@ -26,7 +26,7 @@ def test_create_forces_safe_defaults():
         role="admin",
         disabled=True,
     )
-    with get_conn_cm() as conn:
+    with get_db_cm() as conn:
         created = service.create(conn, payload)
         stored = data.get_one(conn, "alice")
 
@@ -37,7 +37,7 @@ def test_create_forces_safe_defaults():
 
 
 def test_get_one_hides_hash():
-    with get_conn_cm() as conn:
+    with get_db_cm() as conn:
         service.create(conn, UserCreate(name="alice", password="password123"))
         result = service.get_one(conn, "alice")
 
@@ -47,7 +47,7 @@ def test_get_one_hides_hash():
 
 
 def test_modify_preserves_hash():
-    with get_conn_cm() as conn:
+    with get_db_cm() as conn:
         service.create(conn, UserCreate(name="alice", password="password123"))
         updated = service.modify(
             conn,

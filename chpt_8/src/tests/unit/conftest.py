@@ -1,6 +1,6 @@
 import pytest
 
-from data.init import init_db
+from data.db import init_db
 
 
 @pytest.fixture(autouse=True)

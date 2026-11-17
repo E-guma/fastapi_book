@@ -1,5 +1,6 @@
 import data.user as data
 from model.user import User, UserCreate, UserInDB
+from sqlalchemy.orm import Session
 
 from service.auth import get_hash
 
@@ -9,16 +10,16 @@ def _to_user(user: UserInDB) -> User:
     return User(**user.model_dump(exclude={"hash"}))
 
 
-def get_all(conn: data.Connection) -> list[User]:
+def get_all(conn: Session) -> list[User]:
     return [_to_user(user) for user in data.get_all(conn)]
 
 
-def get_one(conn: data.Connection, name: str) -> User:
+def get_one(conn: Session, name: str) -> User:
     return _to_user(data.get_one(conn, name))
 
 
 def create(
-    conn: data.Connection,
+    conn: Session,
     user: UserCreate,
     *,
     role: str = "user",
@@ -33,7 +34,7 @@ def create(
     return _to_user(data.create(conn, db_user))
 
 
-def modify(conn: data.Connection, name: str, user: User) -> User:
+def modify(conn: Session, name: str, user: User) -> User:
     existing = data.get_one(conn, name)
     updated = UserInDB(
         name=user.name,
@@ -44,5 +45,5 @@ def modify(conn: data.Connection, name: str, user: User) -> User:
     return _to_user(data.modify(conn, name, updated))
 
 
-def delete(conn: data.Connection, name: str) -> None:
+def delete(conn: Session, name: str) -> None:
     return data.delete(conn, name)

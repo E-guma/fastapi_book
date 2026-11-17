@@ -1,79 +1,57 @@
-from model.explorer import Explorer
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session
 
-from .error import Duplicate, Missing
-from .init import IntegrityError, Connection
-
-
-def row_to_model(row: tuple) -> Explorer:
-    """Map a database row to an Explorer."""
-    return Explorer(name=row[0], country=row[1], description=row[2])
+from data.error import Duplicate, Missing
+from data.models import ExplorerORM
 
 
-def model_to_dict(explorer: Explorer) -> dict:
-    """Convert an Explorer to a dictionary of column values."""
-    return explorer.model_dump()
-
-
-def get_one(conn: Connection, name: str) -> Explorer:
+def get_one(db: Session, name: str):
     """Retrieve an explorer by name."""
-    curs = conn.cursor()
-    qry = "select * from explorer where name=:name"
-    params = {"name": name}
-    curs.execute(qry, params)
-    row = curs.fetchone()
-    if row:
-        return row_to_model(row)
-    else:
+    orm_explorer = db.get(ExplorerORM, name)
+    if orm_explorer is None:
         raise Missing(f"Explorer {name} not found")
+    return orm_explorer.to_pydantic()
 
 
-def get_all(conn: Connection) -> list[Explorer]:
+def get_all(db: Session) -> list:
     """Retrieve all explorers."""
-    curs = conn.cursor()
-    qry = "select * from explorer"
-    curs.execute(qry)
-    return [row_to_model(row) for row in curs.fetchall()]
+    return [row.to_pydantic() for row in db.query(ExplorerORM).all()]
 
 
-def modify(conn: Connection, name: str, explorer: Explorer) -> Explorer:
-    """Update an explorer."""
-    curs = conn.cursor()
-    qry = """update explorer set 
-            name=:name,
-            country=:country,
-            description=:description
-            where name=:name_orig"""
-    params = model_to_dict(explorer)
-    params["name_orig"] = name
-    try:
-        curs.execute(qry, params)
-    except IntegrityError:
-        raise Duplicate(f"Explorer {explorer.name} already exists")
-    if curs.rowcount == 1:
-        return get_one(conn, explorer.name)
-    else:
-        raise Missing(f"Explorer {name} not found")
-
-
-def create(conn: Connection, explorer: Explorer) -> Explorer:
+def create(db: Session, explorer):
     """Create an explorer."""
-    curs = conn.cursor()
-    qry = "insert into explorer values(:name, :country, :description)"
-    params = model_to_dict(explorer)
+    db_explorer = ExplorerORM.from_pydantic(explorer)
     try:
-        curs.execute(qry, params)
+        db.add(db_explorer)
+        db.commit()
+        db.refresh(db_explorer)
     except IntegrityError:
+        db.rollback()
         raise Duplicate(f"Explorer {explorer.name} already exists")
-    return get_one(conn, explorer.name)
+    return db_explorer.to_pydantic()
 
 
-def delete(conn: Connection, name: str):
-    """Delete an explorer."""
-    curs = conn.cursor()
-    qry = "delete from explorer where name=:name"
-    params = {"name": name}
-    curs.execute(qry, params)
-    if curs.rowcount == 1:
-        return
-    else:
+def modify(db: Session, name: str, explorer):
+    """Update an explorer."""
+    db_explorer = db.get(ExplorerORM, name)
+    if db_explorer is None:
         raise Missing(f"Explorer {name} not found")
+    try:
+        db_explorer.name = explorer.name
+        db_explorer.country = explorer.country
+        db_explorer.description = explorer.description
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise Duplicate(f"Explorer {explorer.name} already exists")
+    return db_explorer.to_pydantic()
+
+
+def delete(db: Session, name: str):
+    """Delete an explorer."""
+    db_explorer = db.get(ExplorerORM, name)
+    if db_explorer is None:
+        raise Missing(f"Explorer {name} not found")
+    db.delete(db_explorer)
+    db.commit()
+    return None

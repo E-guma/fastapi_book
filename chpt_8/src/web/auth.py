@@ -1,13 +1,13 @@
 from typing import Annotated
 
-from data.init import Connection, get_conn
+from data.db import Session, get_db
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from model.user import User
 from pydantic import BaseModel
 from service import auth as service
 
-Db = Annotated[Connection, Depends(get_conn)]
+Db = Annotated[Session, Depends(get_db)]
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='auth/token')
 

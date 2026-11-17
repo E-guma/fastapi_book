@@ -1,7 +1,7 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from web import creature, explorer, auth, user
-from data.init import init_db
+from data.db import init_db
 
 
 @asynccontextmanager

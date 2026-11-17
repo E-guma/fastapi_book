@@ -1,94 +1,58 @@
-from model.user import UserInDB
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session
 
-from .error import Duplicate, Missing
-from .init import Connection, IntegrityError
-
-USER_COLUMNS = "name, hash, role, disabled"
-
-
-def row_to_model(row: tuple) -> UserInDB:
-    """Resolve a database row to a UserInDB object."""
-    name, hash, role, disabled = row
-    return UserInDB(
-        name=name,
-        hash=hash,
-        role=role,
-        disabled=bool(disabled),
-    )
+from data.error import Duplicate, Missing
+from data.models import UserORM
 
 
-def model_to_dict(user: UserInDB) -> dict[str, object]:
-    """Resolve a UserInDB object to a dictionary of column values."""
-    return user.model_dump()
-
-
-def get_all(conn: Connection) -> list[UserInDB]:
+def get_all(db: Session) -> list:
     """Retrieve all users."""
-    curs = conn.cursor()
-    qry = f"select {USER_COLUMNS} from user"
-    curs.execute(qry)
-    rows = curs.fetchall()
-    return [row_to_model(row) for row in rows]
+    return [row.to_pydantic() for row in db.query(UserORM).all()]
 
 
-def get_one(conn: Connection, name: str) -> UserInDB:
+def get_one(db: Session, name: str):
     """Retrieve one user."""
-    curs = conn.cursor()
-    qry = f"select {USER_COLUMNS} from user where name=:name"
-    params = {"name": name}
-    curs.execute(qry, params)
-    row = curs.fetchone()
-    if row:
-        return row_to_model(row)
-    else:
+    orm_user = db.get(UserORM, name)
+    if orm_user is None:
         raise Missing(f"User {name} not found")
+    return orm_user.to_pydantic()
 
 
-def create(conn: Connection, user: UserInDB) -> UserInDB:
+def create(db: Session, user):
     """Create a user."""
-    curs = conn.cursor()
-    qry = """
-        insert into user(name, hash, role, disabled)
-        values(:name, :hash, :role, :disabled)
-    """
-    params = model_to_dict(user)
+    db_user = UserORM.from_pydantic(user)
     try:
-        curs.execute(qry, params)
+        db.add(db_user)
+        db.commit()
+        db.refresh(db_user)
     except IntegrityError:
+        db.rollback()
         raise Duplicate(f"User {user.name} already exists")
-    return get_one(conn, user.name)
+    return db_user.to_pydantic()
 
 
-def modify(conn: Connection, name: str, user: UserInDB) -> UserInDB:
+def modify(db: Session, name: str, user):
     """Modify a user."""
-    curs = conn.cursor()
-    qry = """
-        update user set
-            name=:name,
-            hash=:hash,
-            role=:role,
-            disabled=:disabled
-        where name=:name_orig
-    """
-    params = model_to_dict(user)
-    params["name_orig"] = name
+    db_user = db.get(UserORM, name)
+    if db_user is None:
+        raise Missing(f"User {name} not found")
     try:
-        curs.execute(qry, params)
+        db_user.name = user.name
+        db_user.hash = user.hash
+        db_user.role = user.role
+        db_user.disabled = user.disabled
+        db.commit()
     except IntegrityError:
+        db.rollback()
         raise Duplicate(f"User {user.name} already exists")
-    if curs.rowcount == 1:
-        return get_one(conn, user.name)
-    else:
-        raise Missing(f"User {name} not found")
+    return db_user.to_pydantic()
 
 
-def delete(conn: Connection, name: str) -> None:
+def delete(db: Session, name: str) -> None:
     """Delete a user."""
-    curs = conn.cursor()
-    qry = "delete from user where name=:name"
-    params = {"name": name}
-    curs.execute(qry, params)
-    if curs.rowcount == 1:
-        return
-    else:
+    db_user = db.get(UserORM, name)
+    if db_user is None:
         raise Missing(f"User {name} not found")
+    db.delete(db_user)
+    db.commit()
+    return None

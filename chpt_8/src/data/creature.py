@@ -1,83 +1,59 @@
-from model.creature import Creature
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session
 
-from .error import Duplicate, Missing
-from .init import IntegrityError, Connection
-
-
-def row_to_model(row: tuple) -> Creature:
-    """Map a database row to a Creature."""
-    return Creature(
-        name=row[0], country=row[1], area=row[2], description=row[3], aka=row[4]
-    )
+from data.error import Duplicate, Missing
+from data.models import CreatureORM
 
 
-def model_to_dict(creature: Creature) -> dict:
-    """Convert a Creature to a dictionary of column values."""
-    return creature.model_dump()
-
-
-def get_one(conn: Connection, name: str) -> Creature:
+def get_one(db: Session, name: str):
     """Retrieve a creature by name."""
-    curs = conn.cursor()
-    qry = "select * from creature where name=:name"
-    params = {"name": name}
-    curs.execute(qry, params)
-    row = curs.fetchone()
-    if row:
-        return row_to_model(row)
-    else:
+    orm_creature = db.get(CreatureORM, name)
+    if orm_creature is None:
         raise Missing(f"Creature {name} not found")
+    return orm_creature.to_pydantic()
 
 
-def get_all(conn: Connection) -> list[Creature]:
+def get_all(db: Session) -> list:
     """Retrieve all creatures."""
-    curs = conn.cursor()
-    qry = "select * from creature"
-    curs.execute(qry)
-    return [row_to_model(row) for row in curs.fetchall()]
+    return [row.to_pydantic() for row in db.query(CreatureORM).all()]
 
 
-def create(conn: Connection, creature: Creature) -> Creature:
+def create(db: Session, creature):
     """Create a creature."""
-    curs = conn.cursor()
-    qry = "insert into creature values(:name, :country, :area, :description, :aka)"
-    params = model_to_dict(creature)
+    db_creature = CreatureORM.from_pydantic(creature)
     try:
-        curs.execute(qry, params)
+        db.add(db_creature)
+        db.commit()
+        db.refresh(db_creature)
     except IntegrityError:
+        db.rollback()
         raise Duplicate(f"Creature {creature.name} already exists")
-    return get_one(conn, creature.name)
+    return db_creature.to_pydantic()
 
 
-def modify(conn: Connection, name: str, creature: Creature) -> Creature:
+def modify(db: Session, name: str, creature):
     """Update a creature."""
-    curs = conn.cursor()
-    qry = """Update creature 
-            set name=:name, 
-            country=:country, 
-            area=:area, 
-            description=:description, 
-            aka=:aka 
-            where name=:name_orig"""
-    params = model_to_dict(creature)
-    params["name_orig"] = name
+    db_creature = db.get(CreatureORM, name)
+    if db_creature is None:
+        raise Missing(f"Creature {name} not found")
     try:
-        curs.execute(qry, params)
+        db_creature.name = creature.name
+        db_creature.country = creature.country
+        db_creature.area = creature.area
+        db_creature.description = creature.description
+        db_creature.aka = creature.aka
+        db.commit()
     except IntegrityError:
+        db.rollback()
         raise Duplicate(f"Creature {creature.name} already exists")
-    if curs.rowcount == 1:
-        return get_one(conn, creature.name)
-    else:
-        raise Missing(f"Creature {name} not found")
+    return db_creature.to_pydantic()
 
 
-def delete(conn: Connection, name: str):
+def delete(db: Session, name: str):
     """Delete a creature."""
-    curs = conn.cursor()
-    qry = "delete from creature where name=:name"
-    params = {"name": name}
-    curs.execute(qry, params)
-    if curs.rowcount == 1:
-        return
-    else:
+    db_creature = db.get(CreatureORM, name)
+    if db_creature is None:
         raise Missing(f"Creature {name} not found")
+    db.delete(db_creature)
+    db.commit()
+    return None
