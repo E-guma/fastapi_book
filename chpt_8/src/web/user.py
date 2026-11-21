@@ -43,6 +43,9 @@ def modify(name: str, user: User, conn: Db) -> User:
     except Duplicate as e:
         raise HTTPException(status_code=409, detail=e.msg)
 
+@router.delete("/delete_all", status_code=204)
+def delete_all(conn: Db) -> None:
+    service.delete_all(conn)
 
 @router.delete("/{name}", status_code=204)
 def delete(name: str, conn: Db) -> None:

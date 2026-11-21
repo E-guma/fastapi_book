@@ -2,11 +2,16 @@ import os
 from contextlib import contextmanager
 from pathlib import Path
 
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, select
 from sqlalchemy.orm import DeclarativeBase, Session
+from dotenv import load_dotenv
+load_dotenv()
+
+from data.models import Base, UserORM
+from model.user import UserCreate
+import service.user as service
 
 __all__ = [
-    "Base",
     "Session",
     "get_db",
     "get_db_cm",
@@ -15,8 +20,6 @@ __all__ = [
 ]
 
 
-class Base(DeclarativeBase):
-    """Base class for all ORM models."""
 
 
 def get_db_path() -> str:
@@ -51,15 +54,8 @@ def get_db():
     context manager via :data:`get_db_cm`.
     """
     engine = get_engine()
-    db = Session(engine)
-    try:
-        yield db
-        db.commit()
-    except Exception:
-        db.rollback()
-        raise
-    finally:
-        db.close()
+    with Session(engine) as session, session.begin():
+        yield session
 
 
 get_db_cm = contextmanager(get_db)
@@ -68,3 +64,13 @@ get_db_cm = contextmanager(get_db)
 def init_db():
     """Initialize all database tables from the ORM metadata."""
     Base.metadata.create_all(bind=get_engine())
+    with get_db_cm() as db:
+        admin = db.scalars(select(UserORM).where(UserORM.role=='admin').order_by(UserORM.name.asc())).first()
+        if admin:
+            pass
+        else:
+            admin = UserCreate(
+                name='E-guma', role='admin', password=os.getenv('ADMIN_PASSWORD')
+            )
+            with get_db_cm() as db:
+                service.create(db, admin, role='admin')

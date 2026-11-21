@@ -1,10 +1,10 @@
 """SQLAlchemy ORM models."""
 
 from sqlalchemy import Boolean, String
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
-from data.db import Base
-
+class Base(DeclarativeBase):
+    """Base class for all ORM models."""
 
 class CreatureORM(Base):
     __tablename__ = "creature"

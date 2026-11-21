@@ -1,3 +1,4 @@
+from sqlalchemy import delete as sql_delete
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -23,10 +24,8 @@ def create(db: Session, user):
     db_user = UserORM.from_pydantic(user)
     try:
         db.add(db_user)
-        db.commit()
-        db.refresh(db_user)
+        db.flush()
     except IntegrityError:
-        db.rollback()
         raise Duplicate(f"User {user.name} already exists")
     return db_user.to_pydantic()
 
@@ -41,9 +40,8 @@ def modify(db: Session, name: str, user):
         db_user.hash = user.hash
         db_user.role = user.role
         db_user.disabled = user.disabled
-        db.commit()
+        db.flush()
     except IntegrityError:
-        db.rollback()
         raise Duplicate(f"User {user.name} already exists")
     return db_user.to_pydantic()
 
@@ -54,5 +52,9 @@ def delete(db: Session, name: str) -> None:
     if db_user is None:
         raise Missing(f"User {name} not found")
     db.delete(db_user)
-    db.commit()
+    db.flush()
     return None
+
+def delete_all(db: Session) -> None:
+    """Use with Catioun! Deletes all Users"""
+    db.execute(sql_delete(UserORM))

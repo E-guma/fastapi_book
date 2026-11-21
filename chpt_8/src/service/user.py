@@ -46,4 +46,7 @@ def modify(conn: Session, name: str, user: User) -> User:
 
 
 def delete(conn: Session, name: str) -> None:
-    return data.delete(conn, name)
+    data.delete(conn, name)
+
+def delete_all(conn: Session) -> None:
+    data.delete_all(conn)
