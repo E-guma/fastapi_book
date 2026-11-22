@@ -1,10 +1,9 @@
-from typing import Annotated
+from fastapi import APIRouter, Depends, HTTPException
+
 import service.creature as service
 from data.error import Duplicate, Missing
-from fastapi import APIRouter, HTTPException, Depends
 from model.creature import Creature
-
-from web.auth import Db, get_current_active_user, require_role
+from web.auth import SessionDep, get_current_active_user, require_role
 
 logged_in = [Depends(get_current_active_user)]
 admin_only = [Depends(require_role('admin'))]
@@ -14,9 +13,9 @@ router = APIRouter(prefix="/creature", tags=["creatures"])
 
 @router.get("", include_in_schema=False)
 @router.get("/", summary="List creatures")
-def get_all(conn: Db) -> list[Creature]:
+def get_all(session: SessionDep) -> list[Creature]:
     """Return every creature in the database."""
-    return service.get_all(conn)
+    return service.get_all(session)
 
 
 @router.get(
@@ -24,16 +23,17 @@ def get_all(conn: Db) -> list[Creature]:
     summary="Get a creature",
     responses={404: {"description": "Creature not found"}},
 )
-def get_one(name: str, conn: Db) -> Creature:
+def get_one(name: str, session: SessionDep) -> Creature:
     """Return the creature with the given name."""
     try:
-        return service.get_one(conn, name)
+        return service.get_one(session, name)
     except Missing as e:
         raise HTTPException(status_code=404, detail=e.msg)
 
 
-@router.post("", status_code=201, include_in_schema=False,
-             dependencies=logged_in)
+@router.post(
+    "", status_code=201, include_in_schema=False, dependencies=logged_in
+)
 @router.post(
     "/",
     status_code=201,
@@ -41,10 +41,10 @@ def get_one(name: str, conn: Db) -> Creature:
     responses={409: {"description": "Creature already exists"}},
     dependencies=logged_in,
 )
-def create(creature: Creature, conn: Db) -> Creature:
+def create(creature: Creature, session: SessionDep) -> Creature:
     """Add a new creature."""
     try:
-        return service.create(conn, creature)
+        return service.create(session, creature)
     except Duplicate as e:
         raise HTTPException(status_code=409, detail=e.msg)
 
@@ -58,10 +58,10 @@ def create(creature: Creature, conn: Db) -> Creature:
     },
     dependencies=logged_in,
 )
-def modify(name: str, creature: Creature, conn: Db) -> Creature:
+def modify(name: str, creature: Creature, session: SessionDep) -> Creature:
     """Update an existing creature."""
     try:
-        return service.modify(conn, name, creature)
+        return service.modify(session, name, creature)
     except Missing as e:
         raise HTTPException(status_code=404, detail=e.msg)
     except Duplicate as e:
@@ -75,9 +75,9 @@ def modify(name: str, creature: Creature, conn: Db) -> Creature:
     responses={404: {"description": "Creature not found"}},
     dependencies=admin_only,
 )
-def delete(name: str, conn: Db):
+def delete(name: str, session: SessionDep) -> None:
     """Delete the creature with the given name."""
     try:
-        service.delete(conn, name)
+        service.delete(session, name)
     except Missing as e:
         raise HTTPException(status_code=404, detail=e.msg)

@@ -6,34 +6,34 @@ from data.models import CreatureORM
 from model.creature import Creature
 
 
-def get_one(db: Session, name: str) -> Creature:
+def get_one(session: Session, name: str) -> Creature:
     """Retrieve a creature by name."""
-    orm_creature = db.get(CreatureORM, name)
+    orm_creature = session.get(CreatureORM, name)
     if orm_creature is None:
         raise Missing(f"Creature {name} not found")
     return orm_creature.to_pydantic()
 
 
-def get_all(db: Session) -> list[Creature]:
+def get_all(session: Session) -> list[Creature]:
     """Retrieve all creatures."""
-    return [row.to_pydantic() for row in db.query(CreatureORM).all()]
+    return [row.to_pydantic() for row in session.query(CreatureORM).all()]
 
 
-def create(db: Session, creature: Creature) -> Creature:
+def create(session: Session, creature: Creature) -> Creature:
     """Create a creature."""
     db_creature = CreatureORM.from_pydantic(creature)
     try:
-        db.add(db_creature)
-        db.flush()
-        db.refresh(db_creature)
+        session.add(db_creature)
+        session.flush()
+        session.refresh(db_creature)
     except IntegrityError:
         raise Duplicate(f"Creature {creature.name} already exists")
     return db_creature.to_pydantic()
 
 
-def modify(db: Session, name: str, creature: Creature) -> Creature:
+def modify(session: Session, name: str, creature: Creature) -> Creature:
     """Update a creature."""
-    db_creature = db.get(CreatureORM, name)
+    db_creature = session.get(CreatureORM, name)
     if db_creature is None:
         raise Missing(f"Creature {name} not found")
     try:
@@ -42,17 +42,16 @@ def modify(db: Session, name: str, creature: Creature) -> Creature:
         db_creature.area = creature.area
         db_creature.description = creature.description
         db_creature.aka = creature.aka
-        db.flush()
+        session.flush()
     except IntegrityError:
         raise Duplicate(f"Creature {creature.name} already exists")
     return db_creature.to_pydantic()
 
 
-def delete(db: Session, name: str):
+def delete(session: Session, name: str) -> None:
     """Delete a creature."""
-    db_creature = db.get(CreatureORM, name)
+    db_creature = session.get(CreatureORM, name)
     if db_creature is None:
         raise Missing(f"Creature {name} not found")
-    db.delete(db_creature)
-    db.flush()
-    return None
+    session.delete(db_creature)
+    session.flush()

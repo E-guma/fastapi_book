@@ -3,8 +3,14 @@
 from sqlalchemy import Boolean, String
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
+from model.creature import Creature
+from model.explorer import Explorer
+from model.user import UserInDB
+
+
 class Base(DeclarativeBase):
     """Base class for all ORM models."""
+
 
 class CreatureORM(Base):
     __tablename__ = "creature"
@@ -15,9 +21,7 @@ class CreatureORM(Base):
     description: Mapped[str] = mapped_column(String)
     aka: Mapped[str] = mapped_column(String)
 
-    def to_pydantic(self):
-        from model.creature import Creature
-
+    def to_pydantic(self) -> Creature:
         return Creature(
             name=self.name,
             country=self.country,
@@ -27,7 +31,7 @@ class CreatureORM(Base):
         )
 
     @classmethod
-    def from_pydantic(cls, creature) -> "CreatureORM":
+    def from_pydantic(cls, creature: Creature) -> "CreatureORM":
         return cls(
             name=creature.name,
             country=creature.country,
@@ -44,9 +48,7 @@ class ExplorerORM(Base):
     country: Mapped[str] = mapped_column(String)
     description: Mapped[str] = mapped_column(String)
 
-    def to_pydantic(self):
-        from model.explorer import Explorer
-
+    def to_pydantic(self) -> Explorer:
         return Explorer(
             name=self.name,
             country=self.country,
@@ -54,7 +56,7 @@ class ExplorerORM(Base):
         )
 
     @classmethod
-    def from_pydantic(cls, explorer) -> "ExplorerORM":
+    def from_pydantic(cls, explorer: Explorer) -> "ExplorerORM":
         return cls(
             name=explorer.name,
             country=explorer.country,
@@ -72,9 +74,7 @@ class UserORM(Base):
         Boolean, nullable=False, default=False
     )
 
-    def to_pydantic(self):
-        from model.user import UserInDB
-
+    def to_pydantic(self) -> UserInDB:
         return UserInDB(
             name=self.name,
             hash=self.hash,
@@ -83,7 +83,7 @@ class UserORM(Base):
         )
 
     @classmethod
-    def from_pydantic(cls, user) -> "UserORM":
+    def from_pydantic(cls, user: UserInDB) -> "UserORM":
         return cls(
             name=user.name,
             hash=user.hash,

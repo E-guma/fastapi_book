@@ -4,35 +4,36 @@ from sqlalchemy.orm import Session
 
 from data.error import Duplicate, Missing
 from data.models import UserORM
+from model.user import UserInDB
 
 
-def get_all(db: Session) -> list:
+def get_all(session: Session) -> list[UserInDB]:
     """Retrieve all users."""
-    return [row.to_pydantic() for row in db.query(UserORM).all()]
+    return [row.to_pydantic() for row in session.query(UserORM).all()]
 
 
-def get_one(db: Session, name: str):
+def get_one(session: Session, name: str) -> UserInDB:
     """Retrieve one user."""
-    orm_user = db.get(UserORM, name)
+    orm_user = session.get(UserORM, name)
     if orm_user is None:
         raise Missing(f"User {name} not found")
     return orm_user.to_pydantic()
 
 
-def create(db: Session, user):
+def create(session: Session, user: UserInDB) -> UserInDB:
     """Create a user."""
     db_user = UserORM.from_pydantic(user)
     try:
-        db.add(db_user)
-        db.flush()
+        session.add(db_user)
+        session.flush()
     except IntegrityError:
         raise Duplicate(f"User {user.name} already exists")
     return db_user.to_pydantic()
 
 
-def modify(db: Session, name: str, user):
+def modify(session: Session, name: str, user: UserInDB) -> UserInDB:
     """Modify a user."""
-    db_user = db.get(UserORM, name)
+    db_user = session.get(UserORM, name)
     if db_user is None:
         raise Missing(f"User {name} not found")
     try:
@@ -40,21 +41,21 @@ def modify(db: Session, name: str, user):
         db_user.hash = user.hash
         db_user.role = user.role
         db_user.disabled = user.disabled
-        db.flush()
+        session.flush()
     except IntegrityError:
         raise Duplicate(f"User {user.name} already exists")
     return db_user.to_pydantic()
 
 
-def delete(db: Session, name: str) -> None:
+def delete(session: Session, name: str) -> None:
     """Delete a user."""
-    db_user = db.get(UserORM, name)
+    db_user = session.get(UserORM, name)
     if db_user is None:
         raise Missing(f"User {name} not found")
-    db.delete(db_user)
-    db.flush()
-    return None
+    session.delete(db_user)
+    session.flush()
 
-def delete_all(db: Session) -> None:
+
+def delete_all(session: Session) -> None:
     """Use with Catioun! Deletes all Users"""
-    db.execute(sql_delete(UserORM))
+    session.execute(sql_delete(UserORM))

@@ -1,15 +1,17 @@
+"""Database engine and session lifecycle."""
+
 import os
+from collections.abc import Iterator
 from contextlib import contextmanager
 from pathlib import Path
 
-from sqlalchemy import create_engine, select
-from sqlalchemy.orm import DeclarativeBase, Session
 from dotenv import load_dotenv
-load_dotenv()
+from sqlalchemy import Engine, create_engine
+from sqlalchemy.orm import Session
 
-from data.models import Base, UserORM
-from model.user import UserCreate
-import service.user as service
+from data.models import Base
+
+load_dotenv()
 
 __all__ = [
     "Session",
@@ -20,22 +22,19 @@ __all__ = [
 ]
 
 
-
-
 def get_db_path() -> str:
     """Return the path to the SQLite database file."""
     db_dir = Path(__file__).resolve().parents[1] / "db"
     db_dir.mkdir(exist_ok=True)
     db_path = str(db_dir / "cryptid.db")
-    db_name = os.getenv("CRYPTID_SQLITE_DB", db_path)
-    return db_name
+    return os.getenv("CRYPTID_SQLITE_DB", db_path)
 
 
-_engine = None
-_db_path = None
+_engine: Engine | None = None
+_db_path: str | None = None
 
 
-def get_engine():
+def get_engine() -> Engine:
     """Return the SQLAlchemy engine, recreating it if the DB path changed."""
     global _engine, _db_path
     path = get_db_path()
@@ -47,8 +46,8 @@ def get_engine():
     return _engine
 
 
-def get_db():
-    """Yield a SQLAlchemy Session and manage its transaction.
+def get_db() -> Iterator[Session]:
+    """Yield a Session and manage its transaction.
 
     Intended for use as a FastAPI dependency (``Depends(get_db)``) or as a
     context manager via :data:`get_db_cm`.
@@ -61,16 +60,6 @@ def get_db():
 get_db_cm = contextmanager(get_db)
 
 
-def init_db():
-    """Initialize all database tables from the ORM metadata."""
+def init_db() -> None:
+    """Create all database tables from the ORM metadata."""
     Base.metadata.create_all(bind=get_engine())
-    with get_db_cm() as db:
-        admin = db.scalars(select(UserORM).where(UserORM.role=='admin').order_by(UserORM.name.asc())).first()
-        if admin:
-            pass
-        else:
-            admin = UserCreate(
-                name='E-guma', role='admin', password=os.getenv('ADMIN_PASSWORD')
-            )
-            with get_db_cm() as db:
-                service.create(db, admin, role='admin')

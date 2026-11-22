@@ -1,13 +1,17 @@
 from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
-from web import creature, explorer, auth, user
+
 from data.db import init_db
+from set_admin import set_admin
+from web import auth, creature, explorer, user
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Initialize database tables."""
+    """Initialize database tables and the admin account."""
     init_db()
+    set_admin()
     yield
 
 
