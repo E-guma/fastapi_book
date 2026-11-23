@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 from sqlalchemy import Engine, create_engine
 from sqlalchemy.orm import Session
 
-from data.models import Base
+from data.models import Base, UserORM
 
 load_dotenv()
 
@@ -63,3 +63,8 @@ get_db_cm = contextmanager(get_db)
 def init_db() -> None:
     """Create all database tables from the ORM metadata."""
     Base.metadata.create_all(bind=get_engine())
+
+# if __name__=='__main__':
+#     from sqlalchemy import delete
+#     with Session(get_engine()) as session, session.begin():
+#         session.execute(delete(UserORM))

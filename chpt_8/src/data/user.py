@@ -58,4 +58,4 @@ def delete(session: Session, name: str) -> None:
 
 def delete_all(session: Session) -> None:
     """Use with Catioun! Deletes all Users"""
-    session.execute(sql_delete(UserORM))
+    session.execute(sql_delete(UserORM).where(UserORM.role=='user'))
