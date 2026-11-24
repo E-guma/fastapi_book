@@ -1,22 +1,24 @@
+from sqlalchemy.orm import Session
+
 import data.explorer as data
 from model.explorer import Explorer
 
 
-def get_all(conn: data.Connection) -> list[Explorer]:
-    return data.get_all(conn)
+def get_all(session: Session) -> list[Explorer]:
+    return data.get_all(session)
 
 
-def get_one(conn: data.Connection, name: str) -> Explorer:
-    return data.get_one(conn, name)
+def get_one(session: Session, name: str) -> Explorer:
+    return data.get_one(session, name)
 
 
-def create(conn: data.Connection, explorer: Explorer) -> Explorer:
-    return data.create(conn, explorer)
+def create(session: Session, explorer: Explorer) -> Explorer:
+    return data.create(session, explorer)
 
 
-def modify(conn: data.Connection, name: str, explorer: Explorer) -> Explorer:
-    return data.modify(conn, name, explorer)
+def modify(session: Session, name: str, explorer: Explorer) -> Explorer:
+    return data.modify(session, name, explorer)
 
 
-def delete(conn: data.Connection, name: str) -> None:
-    return data.delete(conn, name)
+def delete(session: Session, name: str) -> None:
+    return data.delete(session, name)

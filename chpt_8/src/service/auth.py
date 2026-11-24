@@ -1,19 +1,20 @@
 import os
 from datetime import UTC, datetime, timedelta
-from sqlite3 import Connection
 
 import jwt
-from data import user as data
-from data.error import Missing
 from dotenv import load_dotenv
 from jwt.exceptions import InvalidTokenError
-from model.user import UserInDB
 from pwdlib import PasswordHash
+from sqlalchemy.orm import Session
+
+from data import user as data
+from data.error import Missing
+from model.user import UserInDB
 
 load_dotenv()
 
 SECRET_KEY = os.getenv("JWT_SECRET")
-if SECRET_KEY == None:
+if SECRET_KEY is None:
     raise RuntimeError("Jwt secret key not set")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
@@ -36,19 +37,19 @@ def verify_password(plain: str, hashed: str) -> bool:
     return password_hash.verify(plain, hashed)
 
 
-def lookup_user(conn: Connection, name: str) -> UserInDB | None:
+def lookup_user(session: Session, name: str) -> UserInDB | None:
     # Convert a missing user from the data layer into None.
     try:
-        return data.get_one(conn, name)
+        return data.get_one(session, name)
     except Missing:
         return None
 
 
-def auth_user(conn: Connection, name: str, plain: str) -> UserInDB | None:
+def auth_user(session: Session, name: str, plain: str) -> UserInDB | None:
     # Authenticate a username and password; return None on any failure.
-    user = lookup_user(conn, name)
+    user = lookup_user(session, name)
     if user is None:
-        verify_password(plain, DUMMY_HASH)  # Perform equivalent work for unknown users.
+        verify_password(plain, DUMMY_HASH)  # Equal work for unknown users.
         return None
     if not verify_password(plain, user.hash):
         return None
@@ -86,9 +87,9 @@ def get_jwt_username(token: str) -> str | None:
     return sub if isinstance(sub, str) and sub else None
 
 
-def get_current_user(conn: Connection, token: str) -> UserInDB | None:
+def get_current_user(session: Session, token: str) -> UserInDB | None:
     # Resolve the current user from the token subject.
     name = get_jwt_username(token)
     if name is None:
         return None
-    return lookup_user(conn, name)
+    return lookup_user(session, name)

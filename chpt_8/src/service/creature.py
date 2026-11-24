@@ -1,22 +1,24 @@
+from sqlalchemy.orm import Session
+
 import data.creature as data
 from model.creature import Creature
 
 
-def get_all(conn: data.Connection) -> list[Creature]:
-    return data.get_all(conn)
+def get_all(session: Session) -> list[Creature]:
+    return data.get_all(session)
 
 
-def get_one(conn: data.Connection, name: str) -> Creature:
-    return data.get_one(conn, name)
+def get_one(session: Session, name: str) -> Creature:
+    return data.get_one(session, name)
 
 
-def create(conn: data.Connection, creature: Creature) -> Creature:
-    return data.create(conn, creature)
+def create(session: Session, creature: Creature) -> Creature:
+    return data.create(session, creature)
 
 
-def modify(conn: data.Connection, name: str, creature: Creature) -> Creature:
-    return data.modify(conn, name, creature)
+def modify(session: Session, name: str, creature: Creature) -> Creature:
+    return data.modify(session, name, creature)
 
 
-def delete(conn: data.Connection, name: str) -> None:
-    return data.delete(conn, name)
+def delete(session: Session, name: str) -> None:
+    return data.delete(session, name)

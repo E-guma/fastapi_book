@@ -1,96 +1,61 @@
+from sqlalchemy import delete as sql_delete
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session
+
+from data.error import Duplicate, Missing
+from data.models import UserORM
 from model.user import UserInDB
 
-from .error import Duplicate, Missing
-from .init import Connection, IntegrityError
 
-USER_COLUMNS = "name, hash, role, disabled"
-
-
-def row_to_model(row: tuple) -> UserInDB:
-    """Resolve a database row to a UserInDB object."""
-    name, hash, role, disabled = row
-    return UserInDB(
-        name=name,
-        hash=hash,
-        role=role,
-        disabled=bool(disabled),
-    )
-
-
-def model_to_dict(user: UserInDB) -> dict[str, object]:
-    """Resolve a UserInDB object to a dictionary of column values."""
-    return user.model_dump()
-
-
-def get_all(conn: Connection) -> list[UserInDB]:
+def get_all(session: Session) -> list[UserInDB]:
     """Retrieve all users."""
-    curs = conn.cursor()
-    qry = f"select {USER_COLUMNS} from user"
-    curs.execute(qry)
-    rows = curs.fetchall()
-    return [row_to_model(row) for row in rows]
+    return [row.to_pydantic() for row in session.query(UserORM).all()]
 
 
-def get_one(conn: Connection, name: str) -> UserInDB:
+def get_one(session: Session, name: str) -> UserInDB:
     """Retrieve one user."""
-    curs = conn.cursor()
-    qry = f"select {USER_COLUMNS} from user where name=:name"
-    params = {"name": name}
-    curs.execute(qry, params)
-    row = curs.fetchone()
-    if row:
-        return row_to_model(row)
-    else:
+    orm_user = session.get(UserORM, name)
+    if orm_user is None:
         raise Missing(f"User {name} not found")
+    return orm_user.to_pydantic()
 
 
-def create(conn: Connection, user: UserInDB,*, table='user') -> UserInDB:
+def create(session: Session, user: UserInDB) -> UserInDB:
     """Create a user."""
-    curs = conn.cursor()
-    qry = f"""
-        insert into {table}(name, hash, role, disabled)
-        values(:name, :hash, :role, :disabled)
-    """
-    params = model_to_dict(user)
+    db_user = UserORM.from_pydantic(user)
     try:
-        curs.execute(qry, params)
+        session.add(db_user)
+        session.flush()
     except IntegrityError:
         raise Duplicate(f"User {user.name} already exists")
-    return get_one(conn, user.name)
+    return db_user.to_pydantic()
 
 
-def modify(conn: Connection, name: str, user: UserInDB) -> UserInDB:
+def modify(session: Session, name: str, user: UserInDB) -> UserInDB:
     """Modify a user."""
-    curs = conn.cursor()
-    qry = """
-        update user set
-            name=:name,
-            hash=:hash,
-            role=:role,
-            disabled=:disabled
-        where name=:name_orig
-    """
-    params = model_to_dict(user)
-    params["name_orig"] = name
+    db_user = session.get(UserORM, name)
+    if db_user is None:
+        raise Missing(f"User {name} not found")
     try:
-        curs.execute(qry, params)
+        db_user.name = user.name
+        db_user.hash = user.hash
+        db_user.role = user.role
+        db_user.disabled = user.disabled
+        session.flush()
     except IntegrityError:
         raise Duplicate(f"User {user.name} already exists")
-    if curs.rowcount == 1:
-        return get_one(conn, user.name)
-    else:
-        raise Missing(f"User {name} not found")
+    return db_user.to_pydantic()
 
 
-def delete(conn: Connection, name: str) -> None:
+def delete(session: Session, name: str) -> None:
     """Delete a user."""
-    user = get_one(conn, name)
-    curs = conn.cursor()
-    qry = "delete from user where name=:name"
-    params = {"name": name}
-    curs.execute(qry, params)
-    if curs.rowcount == 1:
-        create(conn, user, table='xuser')
-        return
-    else:
+    db_user = session.get(UserORM, name)
+    if db_user is None:
         raise Missing(f"User {name} not found")
+    session.delete(db_user)
+    session.flush()
+
+
+def delete_all(session: Session) -> None:
+    """Use with Catioun! Deletes all Users"""
+    session.execute(sql_delete(UserORM).where(UserORM.role=='user'))

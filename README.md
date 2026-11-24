@@ -42,8 +42,9 @@ Each test gets a fresh temporary SQLite database through the
 ```
 chpt_8/src/
 ├── main.py       # FastAPI app, lifespan, health check
+├── set_admin.py  # ensures the initial admin account exists on startup
 ├── model/        # Pydantic schemas
-├── data/         # SQLite queries, connection lifecycle, domain errors
+├── data/         # SQLAlchemy ORM models, sessions, domain errors
 ├── service/      # business layer
 ├── web/          # HTTP routers
 ├── fake/         # in-memory stubs
@@ -55,5 +56,8 @@ chpt_8/src/
 | Variable | Default | Purpose |
 | --- | --- | --- |
 | `CRYPTID_SQLITE_DB` | `chpt_8/src/db/cryptid.db` | SQLite database path |
+| `JWT_SECRET` | — | Secret used to sign access tokens (required) |
+| `ADMIN_USERNAME` | `admin` | Username of the initial admin account |
+| `ADMIN_PASSWORD` | — | Password for the initial admin (required only when no admin exists) |
 
-The database file and its tables are created automatically on startup.
+The database file, its tables, and the initial admin account are created automatically on startup.

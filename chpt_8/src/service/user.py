@@ -1,6 +1,7 @@
+from sqlalchemy.orm import Session
+
 import data.user as data
 from model.user import User, UserCreate, UserInDB
-
 from service.auth import get_hash
 
 
@@ -9,16 +10,16 @@ def _to_user(user: UserInDB) -> User:
     return User(**user.model_dump(exclude={"hash"}))
 
 
-def get_all(conn: data.Connection) -> list[User]:
-    return [_to_user(user) for user in data.get_all(conn)]
+def get_all(session: Session) -> list[User]:
+    return [_to_user(user) for user in data.get_all(session)]
 
 
-def get_one(conn: data.Connection, name: str) -> User:
-    return _to_user(data.get_one(conn, name))
+def get_one(session: Session, name: str) -> User:
+    return _to_user(data.get_one(session, name))
 
 
 def create(
-    conn: data.Connection,
+    session: Session,
     user: UserCreate,
     *,
     role: str = "user",
@@ -30,19 +31,23 @@ def create(
         disabled=disabled,
         hash=get_hash(user.password),
     )
-    return _to_user(data.create(conn, db_user))
+    return _to_user(data.create(session, db_user))
 
 
-def modify(conn: data.Connection, name: str, user: User) -> User:
-    existing = data.get_one(conn, name)
+def modify(session: Session, name: str, user: User) -> User:
+    existing = data.get_one(session, name)
     updated = UserInDB(
         name=user.name,
         role=user.role,
         disabled=user.disabled,
         hash=existing.hash,
     )
-    return _to_user(data.modify(conn, name, updated))
+    return _to_user(data.modify(session, name, updated))
 
 
-def delete(conn: data.Connection, name: str) -> None:
-    return data.delete(conn, name)
+def delete(session: Session, name: str) -> None:
+    data.delete(session, name)
+
+
+def delete_all(session: Session) -> None:
+    data.delete_all(session)
