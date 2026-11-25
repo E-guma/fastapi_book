@@ -7,7 +7,7 @@ from service.auth import get_hash
 
 def _to_user(user: UserInDB) -> User:
     """Remove storage-only fields before returning a user to clients."""
-    return User(**user.model_dump(exclude={"hash"}))
+    return User(**user.model_dump(exclude={"hash", "google_sub"}))
 
 
 def get_all(session: Session) -> list[User]:
@@ -41,6 +41,10 @@ def modify(session: Session, name: str, user: User) -> User:
         role=user.role,
         disabled=user.disabled,
         hash=existing.hash,
+        google_sub=existing.google_sub,
+        email=existing.email,
+        email_verified=existing.email_verified,
+        picture=existing.picture,
     )
     return _to_user(data.modify(session, name, updated))
 

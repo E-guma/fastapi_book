@@ -34,7 +34,7 @@ def get_current_user(
     user = service.get_current_user(session, token)
     if user is None:
         raise unauthorized('Could not validate credentials')
-    return User(**user.model_dump(exclude={'hash'}))
+    return User(**user.model_dump(exclude={'hash', 'google_sub'}))
 
 
 def get_current_active_user(

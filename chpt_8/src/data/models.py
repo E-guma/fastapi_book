@@ -73,6 +73,13 @@ class UserORM(Base):
     disabled: Mapped[bool] = mapped_column(
         Boolean, nullable=False, default=False
     )
+    google_sub: Mapped[str | None] = mapped_column(
+    String, nullable=True, unique=True, index=True)
+    email: Mapped[str | None] = mapped_column(String, nullable=True)
+    email_verified: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False
+    )
+    picture: Mapped[str | None] = mapped_column(String, nullable=True)
 
     def to_pydantic(self) -> UserInDB:
         return UserInDB(
@@ -80,6 +87,10 @@ class UserORM(Base):
             hash=self.hash,
             role=self.role,
             disabled=self.disabled,
+            google_sub=self.google_sub,
+            email=self.email,
+            email_verified=self.email_verified,
+            picture=self.picture,
         )
 
     @classmethod
@@ -89,6 +100,10 @@ class UserORM(Base):
             hash=user.hash,
             role=user.role,
             disabled=user.disabled,
+            google_sub=user.google_sub,
+            email=user.email,
+            email_verified=user.email_verified,
+            picture=user.picture,
         )
 
 

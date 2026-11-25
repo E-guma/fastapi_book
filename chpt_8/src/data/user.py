@@ -19,6 +19,13 @@ def get_one(session: Session, name: str) -> UserInDB:
         raise Missing(f"User {name} not found")
     return orm_user.to_pydantic()
 
+def get_by_google_sub(session: Session, google_sub: str) -> UserInDB | None:
+    """Find a user by their stable Google subject id."""
+    orm_user = (
+        session.query(UserORM).filter_by(google_sub=google_sub).one_or_none()
+    )
+    return orm_user.to_pydantic() if orm_user else None
+
 
 def create(session: Session, user: UserInDB) -> UserInDB:
     """Create a user."""
@@ -41,6 +48,10 @@ def modify(session: Session, name: str, user: UserInDB) -> UserInDB:
         db_user.hash = user.hash
         db_user.role = user.role
         db_user.disabled = user.disabled
+        db_user.google_sub = user.google_sub
+        db_user.email = user.email
+        db_user.email_verified = user.email_verified
+        db_user.picture = user.picture
         session.flush()
     except IntegrityError:
         raise Duplicate(f"User {user.name} already exists")
