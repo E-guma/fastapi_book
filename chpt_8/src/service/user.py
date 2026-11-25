@@ -1,7 +1,7 @@
-from sqlalchemy.orm import Session
-
 import data.user as data
 from model.user import User, UserCreate, UserInDB
+from sqlalchemy.orm import Session
+
 from service.auth import get_hash
 
 

@@ -1,18 +1,11 @@
 """Create the initial administrator account on startup."""
 
-import os
-
-from dotenv import load_dotenv
-from pydantic import ValidationError
-
+from config import ADMIN_PASSWORD, ADMIN_USERNAME
 from data.db import get_db_cm
 from data.error import Duplicate
 from model.user import UserCreate
+from pydantic import ValidationError
 from service import user as service
-
-load_dotenv()
-
-DEFAULT_ADMIN_USERNAME = "admin"
 
 
 def set_admin() -> None:
@@ -22,8 +15,8 @@ def set_admin() -> None:
     only when an admin must be created; ``ADMIN_USERNAME`` defaults to
     ``admin``.
     """
-    name = os.getenv("ADMIN_USERNAME", DEFAULT_ADMIN_USERNAME).strip()
-    password = os.getenv("ADMIN_PASSWORD")
+    name = ADMIN_USERNAME.strip()
+    password = ADMIN_PASSWORD
 
     with get_db_cm() as session:
         if any(user.role == "admin" for user in service.get_all(session)):

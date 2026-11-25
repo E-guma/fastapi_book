@@ -1,12 +1,13 @@
 import json
 import os
-from fastapi import FastAPI
-from starlette.config import Config
-from starlette.requests import Request
-from starlette.middleware.sessions import SessionMiddleware
-from starlette.responses import HTMLResponse, RedirectResponse
+
 from authlib.integrations.starlette_client import OAuth, OAuthError
 from dotenv import load_dotenv
+from fastapi import FastAPI
+from starlette.middleware.sessions import SessionMiddleware
+from starlette.requests import Request
+from starlette.responses import HTMLResponse, RedirectResponse
+
 load_dotenv()
 
 client_id = os.getenv('GOOGLE_CLIENT_ID')

@@ -1,9 +1,8 @@
 import pytest
-
-from model.explorer import Explorer
-from data.error import Missing, Duplicate
 from data import explorer
 from data.db import get_db_cm
+from data.error import Duplicate, Missing
+from model.explorer import Explorer
 
 
 @pytest.fixture

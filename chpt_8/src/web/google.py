@@ -1,12 +1,12 @@
 """Google sign-in routes."""
 from authlib.integrations.starlette_client import OAuthError
-from fastapi import APIRouter, HTTPException, Request
-from pydantic import ValidationError
-
 from data.error import Duplicate
+from fastapi import APIRouter, HTTPException, Request
 from model.user import GoogleUserInfo
+from pydantic import ValidationError
 from service import auth as auth_service
 from service.google import REDIRECT_URI, oauth, resolve_google_user
+
 from web.auth import SessionDep, Token, unauthorized
 
 router = APIRouter(prefix='/auth/google', tags=['auth'])

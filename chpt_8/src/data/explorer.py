@@ -1,9 +1,9 @@
+from model.explorer import Explorer
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from data.error import Duplicate, Missing
 from data.models import ExplorerORM
-from model.explorer import Explorer
 
 
 def get_one(session: Session, name: str) -> Explorer:

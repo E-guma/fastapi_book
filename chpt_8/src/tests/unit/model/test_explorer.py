@@ -1,7 +1,6 @@
 import pytest
-from pydantic import ValidationError
-
 from model.explorer import Explorer
+from pydantic import ValidationError
 
 
 def make_explorer(**overrides) -> Explorer:

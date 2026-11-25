@@ -1,7 +1,6 @@
-from sqlalchemy.orm import Session
-
 import data.creature as data
 from model.creature import Creature
+from sqlalchemy.orm import Session
 
 
 def get_all(session: Session) -> list[Creature]:

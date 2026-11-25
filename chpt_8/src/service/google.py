@@ -1,27 +1,22 @@
 """Google OpenID Connect client configuration."""
-import os
 import hashlib
 import secrets
 
+import data.user as data
 from authlib.integrations.starlette_client import OAuth
+from config import GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REDIRECT_URI
+from model.user import GoogleUserInfo, UserInDB
 from sqlalchemy.orm import Session
 
-import data.user as data
-from model.user import GoogleUserInfo, UserInDB
 from service.auth import get_hash
 
-CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
-CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
-REDIRECT_URI = os.getenv("GOOGLE_REDIRECT_URI", 'http://localhost:8000/auth/google/callback')
-
-if not CLIENT_ID or not CLIENT_SECRET:
-    raise RuntimeError("GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET environment variables are not set.")
+REDIRECT_URI = GOOGLE_REDIRECT_URI
 
 oauth = OAuth()
 oauth.register(
     name="google",
-    client_id=CLIENT_ID,
-    client_secret=CLIENT_SECRET,
+    client_id=GOOGLE_CLIENT_ID,
+    client_secret=GOOGLE_CLIENT_SECRET,
     server_metadata_url="https://accounts.google.com/.well-known/openid-configuration",
     client_kwargs={"scope": "openid email profile",
                    "code_challenge_method": "S256"},

@@ -1,19 +1,11 @@
 from contextlib import asynccontextmanager
-import os
 
-from fastapi import FastAPI
-from starlette.middleware.sessions import SessionMiddleware
-from dotenv import load_dotenv
-load_dotenv()
-
+from config import SESSION_HTTPS_ONLY, SESSION_SECRET
 from data.db import init_db
+from fastapi import FastAPI
 from set_admin import set_admin
-from web import auth, creature, explorer, user, google
-
-session_secret = os.getenv("SESSION_SECRET")
-if not session_secret:
-    raise RuntimeError("SESSION_SECRET environment variable is not set.")
-https_only = os.getenv("SESSION_HTTPS_ONLY").lower() == "true"
+from starlette.middleware.sessions import SessionMiddleware
+from web import auth, creature, explorer, google, user
 
 
 @asynccontextmanager
@@ -33,8 +25,8 @@ app = FastAPI(
 
 app.add_middleware(
     SessionMiddleware,
-    secret_key=session_secret,
-    https_only=https_only,
+    secret_key=SESSION_SECRET,
+    https_only=SESSION_HTTPS_ONLY,
     same_site="lax",
     max_age=600
 )

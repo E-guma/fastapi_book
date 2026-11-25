@@ -1,9 +1,8 @@
 import pytest
-
-from model.creature import Creature
-from data.error import Missing, Duplicate
 from data import creature
 from data.db import get_db_cm
+from data.error import Duplicate, Missing
+from model.creature import Creature
 
 
 @pytest.fixture

@@ -1,17 +1,14 @@
 """Database engine and session lifecycle."""
 
-import os
 from collections.abc import Iterator
 from contextlib import contextmanager
 from pathlib import Path
 
-from dotenv import load_dotenv
+from config import CRYPTID_SQLITE_DB
 from sqlalchemy import Engine, create_engine
 from sqlalchemy.orm import Session
 
-from data.models import Base, UserORM
-
-load_dotenv()
+from data.models import Base
 
 __all__ = [
     "Session",
@@ -27,7 +24,7 @@ def get_db_path() -> str:
     db_dir = Path(__file__).resolve().parents[1] / "db"
     db_dir.mkdir(exist_ok=True)
     db_path = str(db_dir / "cryptid.db")
-    return os.getenv("CRYPTID_SQLITE_DB", db_path)
+    return CRYPTID_SQLITE_DB or db_path
 
 
 _engine: Engine | None = None
@@ -64,7 +61,8 @@ def init_db() -> None:
     """Create all database tables from the ORM metadata."""
     Base.metadata.create_all(bind=get_engine())
 
-# if __name__=='__main__':
+# if __name__ == "__main__":
 #     from sqlalchemy import delete
+#     from data.models import UserORM
 #     with Session(get_engine()) as session, session.begin():
 #         session.execute(delete(UserORM))

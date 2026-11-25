@@ -1,7 +1,6 @@
 import pytest
-from pydantic import ValidationError
-
 from model.creature import Creature
+from pydantic import ValidationError
 
 
 def make_creature(**overrides) -> Creature:

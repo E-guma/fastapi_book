@@ -1,8 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException
-
 import service.creature as service
 from data.error import Duplicate, Missing
+from fastapi import APIRouter, Depends, HTTPException
 from model.creature import Creature
+
 from web.auth import SessionDep, get_current_active_user, require_role
 
 logged_in = [Depends(get_current_active_user)]

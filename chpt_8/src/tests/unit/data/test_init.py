@@ -1,6 +1,5 @@
-from sqlalchemy import inspect
-
 from data.db import get_engine, init_db
+from sqlalchemy import inspect
 
 
 def test_init_db_creates_tables():

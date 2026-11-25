@@ -1,10 +1,10 @@
+from model.user import UserInDB
 from sqlalchemy import delete as sql_delete
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from data.error import Duplicate, Missing
 from data.models import UserORM
-from model.user import UserInDB
 
 
 def get_all(session: Session) -> list[UserInDB]:

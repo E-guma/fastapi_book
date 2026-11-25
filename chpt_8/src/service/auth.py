@@ -1,21 +1,14 @@
-import os
 from datetime import UTC, datetime, timedelta
 
 import jwt
-from dotenv import load_dotenv
+from config import JWT_SECRET
+from data import user as data
+from data.error import Missing
 from jwt.exceptions import InvalidTokenError
+from model.user import UserInDB
 from pwdlib import PasswordHash
 from sqlalchemy.orm import Session
 
-from data import user as data
-from data.error import Missing
-from model.user import UserInDB
-
-load_dotenv()
-
-SECRET_KEY = os.getenv("JWT_SECRET")
-if SECRET_KEY is None:
-    raise RuntimeError("Jwt secret key not set")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 ISSUER = "E-guma_Cryptid_API"
@@ -67,7 +60,7 @@ def create_access_token(subject: str, expires: timedelta | None = None) -> str:
         "iss": ISSUER,
         "aud": AUDIENCE,
     }
-    return jwt.encode(claims, SECRET_KEY, algorithm=ALGORITHM)
+    return jwt.encode(claims, JWT_SECRET, algorithm=ALGORITHM)
 
 
 def get_jwt_username(token: str) -> str | None:
@@ -75,7 +68,7 @@ def get_jwt_username(token: str) -> str | None:
     try:
         payload = jwt.decode(
             token,
-            SECRET_KEY,
+            JWT_SECRET,
             algorithms=[ALGORITHM],
             audience=AUDIENCE,
             issuer=ISSUER,

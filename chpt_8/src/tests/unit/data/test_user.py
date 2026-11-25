@@ -1,7 +1,7 @@
 import pytest
 from data import user
-from data.error import Duplicate, Missing
 from data.db import get_db_cm
+from data.error import Duplicate, Missing
 from model.user import UserInDB
 
 

@@ -1,11 +1,10 @@
 from typing import Annotated
 
+from data.db import Session, get_db
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from pydantic import BaseModel
-
-from data.db import Session, get_db
 from model.user import User
+from pydantic import BaseModel
 from service import auth as service
 
 SessionDep = Annotated[Session, Depends(get_db)]

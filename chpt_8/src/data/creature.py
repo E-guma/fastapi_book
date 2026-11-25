@@ -1,9 +1,9 @@
+from model.creature import Creature
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from data.error import Duplicate, Missing
 from data.models import CreatureORM
-from model.creature import Creature
 
 
 def get_one(session: Session, name: str) -> Creature:

@@ -1,8 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException
-
 import service.user as service
 from data.error import Duplicate, Missing
+from fastapi import APIRouter, Depends, HTTPException
 from model.user import User, UserCreate
+
 from web.auth import SessionDep, require_role
 
 router = APIRouter(

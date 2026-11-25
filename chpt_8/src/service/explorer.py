@@ -1,7 +1,6 @@
-from sqlalchemy.orm import Session
-
 import data.explorer as data
 from model.explorer import Explorer
+from sqlalchemy.orm import Session
 
 
 def get_all(session: Session) -> list[Explorer]:

@@ -1,5 +1,4 @@
 import pytest
-
 from data.db import init_db
 
 
