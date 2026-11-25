@@ -1,5 +1,4 @@
 """Google OpenID Connect client configuration."""
-import hashlib
 import secrets
 
 import data.user as data
@@ -22,12 +21,9 @@ oauth.register(
                    "code_challenge_method": "S256"},
 )
 
-def _google_name(sub: str) -> str:
-    """Derive a unique, <=64-char username from Google's stable sub."""
-    prefix = 'google_'
-    if len(prefix) + len(sub) <= 64:
-        return prefix + sub
-    return prefix + hashlib.sha256(sub.encode()).hexdigest()[:32]
+def _display_name(info: GoogleUserInfo) -> str:
+    """Use Google's name claim; duplicates are fine now that id is the key."""
+    return (info.name or "").strip()[:64] or "Google user"
 
 
 def _unusable_hash() -> str:
@@ -40,6 +36,7 @@ def resolve_google_user(session: Session, info: GoogleUserInfo) -> UserInDB:
     existing = data.get_by_google_sub(session, info.sub)
     if existing is not None:
         changes = {
+            'name': _display_name(info),
             'email': info.email,
             'email_verified': info.email_verified,
             'picture': info.picture,
@@ -53,7 +50,7 @@ def resolve_google_user(session: Session, info: GoogleUserInfo) -> UserInDB:
     return data.create(
         session,
         UserInDB(
-            name=_google_name(info.sub),
+            name=_display_name(info),
             hash=_unusable_hash(),
             role='user',
             disabled=False,

@@ -39,4 +39,4 @@ async def google_callback(request: Request, session: SessionDep) -> Token:
     if user.disabled:
         raise HTTPException(status_code=403, detail='Inactive user')
 
-    return Token(access_token=auth_service.create_access_token(user.name))
+    return Token(access_token=auth_service.create_access_token(user.id))

@@ -1,9 +1,11 @@
 """SQLAlchemy ORM models."""
 
+from uuid import UUID, uuid4
+
 from model.creature import Creature
 from model.explorer import Explorer
 from model.user import UserInDB
-from sqlalchemy import Boolean, String
+from sqlalchemy import Boolean, Index, String, Uuid, text
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 
@@ -65,8 +67,19 @@ class ExplorerORM(Base):
 
 class UserORM(Base):
     __tablename__ = "user"
+    __table_args__ = (
+        # Usernames must be unique for password login, but Google users are
+        # free to share a display name (they are identified by google_sub).
+        Index(
+            "ix_user_username",
+            "name",
+            unique=True,
+            sqlite_where=text("google_sub IS NULL"),
+        ),
+    )
 
-    name: Mapped[str] = mapped_column(String, primary_key=True)
+    id: Mapped[UUID] = mapped_column(Uuid, primary_key=True, default=uuid4)
+    name: Mapped[str] = mapped_column(String, nullable=False, index=True)
     hash: Mapped[str] = mapped_column(String, nullable=False)
     role: Mapped[str] = mapped_column(String, nullable=False, default="user")
     disabled: Mapped[bool] = mapped_column(
@@ -82,6 +95,7 @@ class UserORM(Base):
 
     def to_pydantic(self) -> UserInDB:
         return UserInDB(
+            id=self.id,
             name=self.name,
             hash=self.hash,
             role=self.role,

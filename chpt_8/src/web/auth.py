@@ -70,7 +70,7 @@ def login(
     user = service.auth_user(session, form.username, form.password)
     if user is None:
         raise unauthorized('Incorrect username or password')
-    return Token(access_token=service.create_access_token(user.name))
+    return Token(access_token=service.create_access_token(user.id))
 
 
 @router.get('/me')

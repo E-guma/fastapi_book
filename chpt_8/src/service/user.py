@@ -1,3 +1,5 @@
+from uuid import UUID
+
 import data.user as data
 from model.user import User, UserCreate, UserInDB
 from sqlalchemy.orm import Session
@@ -14,8 +16,8 @@ def get_all(session: Session) -> list[User]:
     return [_to_user(user) for user in data.get_all(session)]
 
 
-def get_one(session: Session, name: str) -> User:
-    return _to_user(data.get_one(session, name))
+def get_one(session: Session, id: UUID) -> User:
+    return _to_user(data.get_one(session, id))
 
 
 def create(
@@ -34,9 +36,10 @@ def create(
     return _to_user(data.create(session, db_user))
 
 
-def modify(session: Session, name: str, user: User) -> User:
-    existing = data.get_one(session, name)
+def modify(session: Session, id: UUID, user: User) -> User:
+    existing = data.get_one(session, id)
     updated = UserInDB(
+        id=existing.id,
         name=user.name,
         role=user.role,
         disabled=user.disabled,
@@ -46,11 +49,11 @@ def modify(session: Session, name: str, user: User) -> User:
         email_verified=existing.email_verified,
         picture=existing.picture,
     )
-    return _to_user(data.modify(session, name, updated))
+    return _to_user(data.modify(session, id, updated))
 
 
-def delete(session: Session, name: str) -> None:
-    data.delete(session, name)
+def delete(session: Session, id: UUID) -> None:
+    data.delete(session, id)
 
 
 def delete_all(session: Session) -> None:

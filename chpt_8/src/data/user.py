@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from model.user import UserInDB
 from sqlalchemy import delete as sql_delete
 from sqlalchemy.exc import IntegrityError
@@ -12,12 +14,23 @@ def get_all(session: Session) -> list[UserInDB]:
     return [row.to_pydantic() for row in session.query(UserORM).all()]
 
 
-def get_one(session: Session, name: str) -> UserInDB:
-    """Retrieve one user."""
-    orm_user = session.get(UserORM, name)
+def get_one(session: Session, id: UUID) -> UserInDB:
+    """Retrieve one user by primary key."""
+    orm_user = session.get(UserORM, id)
     if orm_user is None:
-        raise Missing(f"User {name} not found")
+        raise Missing(f"User {id} not found")
     return orm_user.to_pydantic()
+
+
+def get_by_username(session: Session, name: str) -> UserInDB | None:
+    """Find a password user by username; Google accounts never match."""
+    orm_user = (
+        session.query(UserORM)
+        .filter_by(name=name, google_sub=None)
+        .one_or_none()
+    )
+    return orm_user.to_pydantic() if orm_user else None
+
 
 def get_by_google_sub(session: Session, google_sub: str) -> UserInDB | None:
     """Find a user by their stable Google subject id."""
@@ -38,11 +51,11 @@ def create(session: Session, user: UserInDB) -> UserInDB:
     return db_user.to_pydantic()
 
 
-def modify(session: Session, name: str, user: UserInDB) -> UserInDB:
+def modify(session: Session, id: UUID, user: UserInDB) -> UserInDB:
     """Modify a user."""
-    db_user = session.get(UserORM, name)
+    db_user = session.get(UserORM, id)
     if db_user is None:
-        raise Missing(f"User {name} not found")
+        raise Missing(f"User {id} not found")
     try:
         db_user.name = user.name
         db_user.hash = user.hash
@@ -58,11 +71,11 @@ def modify(session: Session, name: str, user: UserInDB) -> UserInDB:
     return db_user.to_pydantic()
 
 
-def delete(session: Session, name: str) -> None:
+def delete(session: Session, id: UUID) -> None:
     """Delete a user."""
-    db_user = session.get(UserORM, name)
+    db_user = session.get(UserORM, id)
     if db_user is None:
-        raise Missing(f"User {name} not found")
+        raise Missing(f"User {id} not found")
     session.delete(db_user)
     session.flush()
 

@@ -1,4 +1,5 @@
 from typing import Literal
+from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -8,6 +9,7 @@ class User(BaseModel):
 
     model_config = ConfigDict(str_strip_whitespace=True)
 
+    id: UUID | None = None  # Assigned by the database; ignored on input.
     name: str = Field(min_length=1, max_length=64)
     role: Literal["user", "admin"] = "user"
     disabled: bool = False

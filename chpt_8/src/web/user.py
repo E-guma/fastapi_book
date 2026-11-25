@@ -1,3 +1,5 @@
+from uuid import UUID
+
 import service.user as service
 from data.error import Duplicate, Missing
 from fastapi import APIRouter, Depends, HTTPException
@@ -16,10 +18,10 @@ def get_all(session: SessionDep) -> list[User]:
     return service.get_all(session)
 
 
-@router.get("/{name}")
-def get_one(name: str, session: SessionDep) -> User:
+@router.get("/{id}")
+def get_one(id: UUID, session: SessionDep) -> User:
     try:
-        return service.get_one(session, name)
+        return service.get_one(session, id)
     except Missing as e:
         raise HTTPException(status_code=404, detail=e.msg)
 
@@ -33,10 +35,10 @@ def create(user: UserCreate, session: SessionDep) -> User:
         raise HTTPException(status_code=409, detail=e.msg)
 
 
-@router.patch("/{name}", status_code=200)
-def modify(name: str, user: User, session: SessionDep) -> User:
+@router.patch("/{id}", status_code=200)
+def modify(id: UUID, user: User, session: SessionDep) -> User:
     try:
-        return service.modify(session, name, user)
+        return service.modify(session, id, user)
     except Missing as e:
         raise HTTPException(status_code=404, detail=e.msg)
     except Duplicate as e:
@@ -48,9 +50,9 @@ def delete_all(session: SessionDep) -> None:
     service.delete_all(session)
 
 
-@router.delete("/{name}", status_code=204)
-def delete(name: str, session: SessionDep) -> None:
+@router.delete("/{id}", status_code=204)
+def delete(id: UUID, session: SessionDep) -> None:
     try:
-        service.delete(session, name)
+        service.delete(session, id)
     except Missing as e:
         raise HTTPException(status_code=404, detail=e.msg)
