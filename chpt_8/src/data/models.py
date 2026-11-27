@@ -5,7 +5,7 @@ from uuid import UUID, uuid4
 from model.creature import Creature
 from model.explorer import Explorer
 from model.user import UserInDB
-from sqlalchemy import Boolean, Index, String, Uuid, text
+from sqlalchemy import Index, text
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 
@@ -16,11 +16,11 @@ class Base(DeclarativeBase):
 class CreatureORM(Base):
     __tablename__ = "creature"
 
-    name: Mapped[str] = mapped_column(String, primary_key=True)
-    country: Mapped[str] = mapped_column(String)
-    area: Mapped[str] = mapped_column(String)
-    description: Mapped[str] = mapped_column(String)
-    aka: Mapped[str] = mapped_column(String)
+    name: Mapped[str] = mapped_column(primary_key=True)
+    country: Mapped[str]
+    area: Mapped[str]
+    description: Mapped[str]
+    aka: Mapped[str]
 
     def to_pydantic(self) -> Creature:
         return Creature(
@@ -45,9 +45,9 @@ class CreatureORM(Base):
 class ExplorerORM(Base):
     __tablename__ = "explorer"
 
-    name: Mapped[str] = mapped_column(String, primary_key=True)
-    country: Mapped[str] = mapped_column(String)
-    description: Mapped[str] = mapped_column(String)
+    name: Mapped[str] = mapped_column(primary_key=True)
+    country: Mapped[str]
+    description: Mapped[str]
 
     def to_pydantic(self) -> Explorer:
         return Explorer(
@@ -78,20 +78,15 @@ class UserORM(Base):
         ),
     )
 
-    id: Mapped[UUID] = mapped_column(Uuid, primary_key=True, default=uuid4)
-    name: Mapped[str] = mapped_column(String, nullable=False, index=True)
-    hash: Mapped[str] = mapped_column(String, nullable=False)
-    role: Mapped[str] = mapped_column(String, nullable=False, default="user")
-    disabled: Mapped[bool] = mapped_column(
-        Boolean, nullable=False, default=False
-    )
-    google_sub: Mapped[str | None] = mapped_column(
-    String, nullable=True, unique=True, index=True)
-    email: Mapped[str | None] = mapped_column(String, nullable=True)
-    email_verified: Mapped[bool] = mapped_column(
-        Boolean, nullable=False, default=False
-    )
-    picture: Mapped[str | None] = mapped_column(String, nullable=True)
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    name: Mapped[str] = mapped_column(index=True)
+    hash: Mapped[str]
+    role: Mapped[str] = mapped_column(default="user")
+    disabled: Mapped[bool] = mapped_column(default=False)
+    google_sub: Mapped[str | None] = mapped_column(unique=True, index=True)
+    email: Mapped[str | None]
+    email_verified: Mapped[bool] = mapped_column(default=False)
+    picture: Mapped[str | None]
 
     def to_pydantic(self) -> UserInDB:
         return UserInDB(
@@ -123,5 +118,5 @@ class UserORM(Base):
 class XUserORM(Base):
     __tablename__ = "xuser"
 
-    name: Mapped[str] = mapped_column(String, primary_key=True)
-    hash: Mapped[str] = mapped_column(String, nullable=False)
+    name: Mapped[str] = mapped_column(primary_key=True)
+    hash: Mapped[str]
